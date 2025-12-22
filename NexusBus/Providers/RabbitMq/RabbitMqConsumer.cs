@@ -35,7 +35,7 @@ internal class RabbitMqConsumer
         await channel.QueueDeclareAsync(queue: queueName, durable: true, exclusive: false, autoDelete: false, arguments: null, cancellationToken: token);
         await channel.BasicQosAsync(prefetchSize: 0, prefetchCount: 1, global: false, cancellationToken: token);
 
-        var consumer = new AsyncEventingBasicConsumer(channel);
+    var consumer = new AsyncEventingBasicConsumer(channel);
 
         consumer.ReceivedAsync += async (sender, ea) =>
         {
@@ -63,8 +63,53 @@ internal class RabbitMqConsumer
             }
         };
 
-        await channel.BasicConsumeAsync(queue: queueName, autoAck: false, consumer: consumer, cancellationToken: token);
+        var consumerTag = await channel.BasicConsumeAsync(queue: queueName, autoAck: false, consumer: consumer, cancellationToken: token);
 
-        _logger.LogInformation("NexusBus: Ouvindo fila {Queue} com RabbitMQ v7", queueName);
+        _logger.LogInformation("NexusBus: Ouvindo fila {Queue} com RabbitMQ v7 (consumer={ConsumerTag})", queueName, consumerTag);
+
+             if (token.CanBeCanceled)
+        {
+            token.Register(() =>
+            {
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        _logger.LogInformation("NexusBus: Cancelando consumer {ConsumerTag} da fila {Queue}", consumerTag, queueName);
+
+                        try
+                        {
+                            await channel.BasicCancelAsync(consumerTag);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogDebug(ex, "Falha ao executar BasicCancelAsync para {Queue}", queueName);
+                        }
+
+                        try
+                        {
+                            await channel.CloseAsync();
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogDebug(ex, "Falha ao fechar o canal (CloseAsync) para {Queue}", queueName);
+                        }
+
+                        try
+                        {
+                            await channel.DisposeAsync();
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogDebug(ex, "Falha ao descartar o canal (DisposeAsync) para {Queue}", queueName);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogDebug(ex, "Erro na tarefa de cancelamento do consumer para {Queue}", queueName);
+                    }
+                });
+            });
+        }
     }
 }
