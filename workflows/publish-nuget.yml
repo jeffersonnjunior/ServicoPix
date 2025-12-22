@@ -1,8 +1,10 @@
-name: Publicar NuGet no Commit
+name: Publicar NexusBus NuGet
 
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'NexusBus/**'  
 
 jobs:
   build-and-publish:
@@ -11,17 +13,17 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Setup .NET
+    - name: Setup .NET 10
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 10.0.x
+        dotnet-version: 10.0.x 
 
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore NexusBus
 
     - name: Pack
       run: |
-        dotnet pack --no-restore -c Release -o out \
+        dotnet pack NexusBus/NexusBus.csproj --no-restore -c Release -o out \
         -p:PackageVersion=1.0.${{ github.run_number }}
         
     - name: Push to NuGet
