@@ -1,1 +1,3 @@
-<Solution />
+<Solution>
+  <Project Path="NexusBus/NexusBus.csproj" />
+</Solution>
