@@ -2,7 +2,7 @@ name: Publicar NexusBus NuGet
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "master" ]
     paths:
       - 'NexusBus/**'  
 
