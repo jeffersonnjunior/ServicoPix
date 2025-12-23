@@ -13,6 +13,20 @@ services:
       timeout: 3s
       retries: 20
 
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    environment:
+      - RABBITMQ_DEFAULT_USER=servicopix
+      - RABBITMQ_DEFAULT_PASS=servicopix
+      - RABBITMQ_DEFAULT_VHOST=/
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
   servicopix.api:
     image: ${DOCKER_REGISTRY-}servicopixapi
     build:
@@ -21,11 +35,18 @@ services:
     environment:
       - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=servicopix;Username=postgres;Password=postgres
+      - NexusBus__RabbitMq__HostName=rabbitmq
+      - NexusBus__RabbitMq__UserName=servicopix
+      - NexusBus__RabbitMq__Password=servicopix
+      - NexusBus__RabbitMq__VirtualHost=/
     ports:
       - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
 
 volumes:
   postgres_data:
+  rabbitmq_data:

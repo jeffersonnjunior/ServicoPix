@@ -3,11 +3,20 @@ services:
     ports:
       - "5432:5432"
 
+  rabbitmq:
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
   servicopix.api:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=servicopix;Username=postgres;Password=postgres
+      - NexusBus__RabbitMq__HostName=rabbitmq
+      - NexusBus__RabbitMq__UserName=servicopix
+      - NexusBus__RabbitMq__Password=servicopix
+      - NexusBus__RabbitMq__VirtualHost=/
     ports:
       - "8080:8080"
     volumes:
