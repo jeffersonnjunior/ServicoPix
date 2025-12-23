@@ -1,9 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using NexusBus.Extensions;
+using ServicoPix.Domain.Interfaces;
 using ServicoPix.Domain.Interfaces.IRepositories;
 using ServicoPix.Domain.Interfaces.Services;
 using ServicoPix.Infrastructure.Adapters;
+using ServicoPix.Infrastructure.Persistence;
 using ServicoPix.Infrastructure.Persistence.Context;
 using ServicoPix.Infrastructure.Persistence.Repositories;
 
@@ -22,6 +25,9 @@ public static class AddInfrastructureDependencyInjection
 
         services.AddScoped<IContaRepository, ContaRepository>();
         services.AddScoped<ITransacaoRepository, TransacaoRepository>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IMensageriaService, NexusBusAdapter>();
+
+        services.AddNexusBus(configuration);
     }
 }
