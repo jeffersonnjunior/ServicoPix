@@ -4,4 +4,5 @@
   <Project Path="ServicoPix.Application/ServicoPix.Application.csproj" />
   <Project Path="ServicoPix.Domain/ServicoPix.Domain.csproj" />
   <Project Path="ServicoPix.Infrastructure/ServicoPix.Infrastructure.csproj" />
+  <Project Path="ServicoPix.Worker/ServicoPix.Worker.csproj" />
 </Solution>
