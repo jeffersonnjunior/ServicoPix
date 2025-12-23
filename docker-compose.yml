@@ -18,6 +18,9 @@ services:
     build:
       context: .
       dockerfile: ServicoPix.Api/Dockerfile
+    environment:
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=servicopix;Username=postgres;Password=postgres
     ports:
       - "8080:8080"
     depends_on:
