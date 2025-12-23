@@ -1,14 +1,15 @@
-var builder = WebApplication.CreateBuilder(args);
+using ServicoPix.Infrastructure.DependencyInjection;
 
-// Add services to the container.
+var builder = WebApplication.CreateBuilder(args);
+IConfiguration configuration = builder.Configuration;
 
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.DependencyInjectionInfrastructure(configuration);
+
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
