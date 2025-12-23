@@ -8,7 +8,7 @@ namespace ServicoPix.Application.DependencyInjection;
 
 public static class AddDependencyInjectionApplication
 {
-    public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection DependencyInjectionApplication(this IServiceCollection services, IConfiguration configuration)
     {
         var assembly = Assembly.GetExecutingAssembly();
 

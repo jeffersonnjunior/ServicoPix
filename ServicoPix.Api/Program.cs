@@ -1,3 +1,4 @@
+using ServicoPix.Application.DependencyInjection;
 using ServicoPix.Infrastructure.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -5,6 +6,7 @@ IConfiguration configuration = builder.Configuration;
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.DependencyInjectionApplication(configuration);
 builder.Services.DependencyInjectionInfrastructure(configuration);
 
 
