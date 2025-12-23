@@ -1,6 +1,8 @@
+using Microsoft.EntityFrameworkCore;
 using ServicoPix.Api.Middlewares;
 using ServicoPix.Application.DependencyInjection;
 using ServicoPix.Infrastructure.DependencyInjection;
+using ServicoPix.Infrastructure.Persistence.Context;
 
 var builder = WebApplication.CreateBuilder(args);
 IConfiguration configuration = builder.Configuration;

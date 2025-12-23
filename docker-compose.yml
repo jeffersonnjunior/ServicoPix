@@ -1,6 +1,28 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=servicopix
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d servicopix"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
   servicopix.api:
     image: ${DOCKER_REGISTRY-}servicopixapi
     build:
       context: .
       dockerfile: ServicoPix.Api/Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
