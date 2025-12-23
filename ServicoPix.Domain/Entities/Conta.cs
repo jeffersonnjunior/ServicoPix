@@ -1,4 +1,6 @@
-﻿namespace ServicoPix.Domain.Entities;
+﻿using ServicoPix.Domain.Exceptions;
+
+namespace ServicoPix.Domain.Entities;
 
 public class Conta
 {
