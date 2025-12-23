@@ -1,0 +1,6 @@
+services:
+  servicopix.api:
+    image: ${DOCKER_REGISTRY-}servicopixapi
+    build:
+      context: .
+      dockerfile: ServicoPix.Api/Dockerfile
