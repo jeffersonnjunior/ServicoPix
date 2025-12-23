@@ -25,11 +25,8 @@ namespace ServicoPix.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Solicitar([FromBody] SolicitarPixCommand command)
         {
-            // O ValidationBehavior roda antes disso. Se inválido, nem chega aqui.
             var protocoloId = await _mediator.Send(command);
 
-            // Retornamos 202 (Accepted) porque a operação é Assíncrona via Fila.
-            // O cliente recebe o ID e depois consulta o status.
             return Accepted(new
             {
                 Protocolo = protocoloId,
