@@ -1,3 +1,4 @@
+using ServicoPix.Api.Middlewares;
 using ServicoPix.Application.DependencyInjection;
 using ServicoPix.Infrastructure.DependencyInjection;
 
@@ -20,6 +21,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+
+app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 app.MapControllers();
 
