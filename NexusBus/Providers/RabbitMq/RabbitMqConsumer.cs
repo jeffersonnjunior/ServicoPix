@@ -15,13 +15,15 @@ internal class RabbitMqConsumer
     private readonly RabbitMqConnection _connectionManager;
     private readonly ILogger<RabbitMqConsumer> _logger;
     private readonly AsyncRetryPolicy _retryPolicy;
+    private readonly NexusOptions _options;
 
     public RabbitMqConsumer(RabbitMqConnection connectionManager, IOptions<NexusOptions> options, ILogger<RabbitMqConsumer> logger)
     {
         _connectionManager = connectionManager;
         _logger = logger;
+        _options = options.Value;
 
-        var retryCount = options.Value.RabbitMq.RetryCount;
+        var retryCount = _options.RabbitMq.RetryCount;
         _retryPolicy = Policy
             .Handle<Exception>()
             .WaitAndRetryAsync(retryCount, _ => TimeSpan.FromSeconds(1));
@@ -32,10 +34,53 @@ internal class RabbitMqConsumer
         var connection = await _connectionManager.GetConnectionAsync(token);
         var channel = await connection.CreateChannelAsync(cancellationToken: token);
 
-        await channel.QueueDeclareAsync(queue: queueName, durable: true, exclusive: false, autoDelete: false, arguments: null, cancellationToken: token);
+        var rmq = _options.RabbitMq;
+        var useCustomExchange = rmq.DeclareTopology && !string.IsNullOrWhiteSpace(rmq.ExchangeName);
+        var exchangeName = useCustomExchange ? rmq.ExchangeName : "";
+
+        if (rmq.DeclareTopology && useCustomExchange)
+        {
+            await channel.ExchangeDeclareAsync(
+                exchange: exchangeName,
+                type: rmq.ExchangeType,
+                durable: true,
+                autoDelete: false,
+                arguments: null,
+                cancellationToken: token);
+        }
+
+        IDictionary<string, object?>? queueArgs = null;
+        if (rmq.EnableDeadLetter)
+        {
+            queueArgs = new Dictionary<string, object?>
+            {
+                ["x-dead-letter-exchange"] = rmq.DeadLetterExchangeName,
+                ["x-dead-letter-routing-key"] = queueName + rmq.DeadLetterQueueSuffix
+            };
+
+            await channel.ExchangeDeclareAsync(
+                exchange: rmq.DeadLetterExchangeName,
+                type: "direct",
+                durable: true,
+                autoDelete: false,
+                arguments: null,
+                cancellationToken: token);
+
+            var dlqName = queueName + rmq.DeadLetterQueueSuffix;
+            await channel.QueueDeclareAsync(queue: dlqName, durable: true, exclusive: false, autoDelete: false, arguments: null, cancellationToken: token);
+            await channel.QueueBindAsync(queue: dlqName, exchange: rmq.DeadLetterExchangeName, routingKey: dlqName, arguments: null, cancellationToken: token);
+        }
+
+        await channel.QueueDeclareAsync(queue: queueName, durable: true, exclusive: false, autoDelete: false, arguments: queueArgs, cancellationToken: token);
+
+        if (rmq.DeclareTopology && useCustomExchange)
+        {
+            await channel.QueueBindAsync(queue: queueName, exchange: exchangeName, routingKey: queueName, arguments: null, cancellationToken: token);
+        }
+
         await channel.BasicQosAsync(prefetchSize: 0, prefetchCount: 1, global: false, cancellationToken: token);
 
-    var consumer = new AsyncEventingBasicConsumer(channel);
+        var consumer = new AsyncEventingBasicConsumer(channel);
 
         consumer.ReceivedAsync += async (sender, ea) =>
         {
