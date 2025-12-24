@@ -60,6 +60,20 @@ services:
       servicopix.migrator:
         condition: service_completed_successfully
 
+  servicopix.worker:
+    image: ${DOCKER_REGISTRY-}servicopixworker
+    build:
+      context: .
+      dockerfile: ServicoPix.Worker/Dockerfile
+    environment:
+      - NexusBus__RabbitMq__HostName=rabbitmq
+      - NexusBus__RabbitMq__UserName=servicopix
+      - NexusBus__RabbitMq__Password=servicopix
+      - NexusBus__RabbitMq__VirtualHost=/
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
 volumes:
   postgres_data:
   rabbitmq_data:
