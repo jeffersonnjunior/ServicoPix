@@ -21,7 +21,16 @@ FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
 RUN dotnet publish "./ServicoPix.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
+WORKDIR /src
+RUN dotnet tool restore
+
+WORKDIR /src/ServicoPix.Api
+RUN dotnet tool run dotnet-ef migrations bundle --self-contained -r linux-x64 -o /app/efbundle
+
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+
+COPY --from=publish /app/efbundle .
+
 ENTRYPOINT ["dotnet", "ServicoPix.Api.dll"]

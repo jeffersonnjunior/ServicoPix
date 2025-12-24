@@ -27,6 +27,17 @@ services:
       timeout: 5s
       retries: 20
 
+  servicopix.migrator:
+    image: ${DOCKER_REGISTRY-}servicopixapi
+    build:
+      context: .
+      dockerfile: ServicoPix.Api/Dockerfile
+    entrypoint: ["./efbundle"]
+    command: ["--connection", "Host=postgres;Port=5432;Database=servicopix;Username=postgres;Password=postgres"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   servicopix.api:
     image: ${DOCKER_REGISTRY-}servicopixapi
     build:
@@ -46,6 +57,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      servicopix.migrator:
+        condition: service_completed_successfully
 
 volumes:
   postgres_data:
