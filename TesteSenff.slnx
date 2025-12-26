@@ -2,6 +2,7 @@
   <Project Path="docker-compose.dcproj">
     <Build />
   </Project>
+  <Project Path="NexusBus/NexusBus.csproj" />
   <Project Path="ServicoPix.Api/ServicoPix.Api.csproj" />
   <Project Path="ServicoPix.Application/ServicoPix.Application.csproj" />
   <Project Path="ServicoPix.Domain/ServicoPix.Domain.csproj" />
