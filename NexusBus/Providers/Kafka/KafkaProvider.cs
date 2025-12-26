@@ -2,7 +2,7 @@ using NexusBus.Abstractions;
 
 namespace NexusBus.Providers.Kafka;
 
-internal class KafkaProvider : INexusBus
+internal class KafkaProvider : IKafkaNexusBus
 {
     private readonly KafkaProducer _producer;
     private readonly KafkaConsumer _consumer;

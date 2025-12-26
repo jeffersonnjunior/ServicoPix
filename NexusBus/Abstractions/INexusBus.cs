@@ -13,3 +13,15 @@ public interface INexusBus
     /// </summary>
     Task SubscribeAsync<T>(string topicOrQueue, Func<T, Task> handler, CancellationToken cancellationToken = default);
 }
+
+/// <summary>
+/// Abstração tipada para RabbitMQ.
+/// Permite ao consumidor injetar e usar RabbitMQ e Kafka ao mesmo tempo no mesmo projeto.
+/// </summary>
+public interface IRabbitMqNexusBus : INexusBus;
+
+/// <summary>
+/// Abstração tipada para Kafka.
+/// Permite ao consumidor injetar e usar RabbitMQ e Kafka ao mesmo tempo no mesmo projeto.
+/// </summary>
+public interface IKafkaNexusBus : INexusBus;

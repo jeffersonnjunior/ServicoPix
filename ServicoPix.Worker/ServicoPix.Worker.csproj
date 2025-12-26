@@ -9,12 +9,12 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.1" />
-    <PackageReference Include="NexusBus" Version="1.0.4" />
   </ItemGroup>
 
 
 
   <ItemGroup>
+    <ProjectReference Include="..\NexusBus\NexusBus.csproj" />
   </ItemGroup>
 
 </Project>

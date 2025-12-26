@@ -14,15 +14,19 @@ public static class ServiceCollectionExtensions
         var section = configuration.GetSection(NexusOptions.SectionName);
         services.Configure<NexusOptions>(section);
 
-        var provider = section.GetValue<string>(nameof(NexusOptions.Provider)) ?? "RabbitMQ";
-        if (provider.Equals("Kafka", StringComparison.OrdinalIgnoreCase))
+        // Register BOTH providers so the application can inject and use both simultaneously.
+        // INexusBus remains as the default provider selected via NexusBus:Provider.
+        RegisterRabbitMq(services);
+        RegisterKafka(services);
+
+        services.AddSingleton<INexusBus>(sp =>
         {
-            RegisterKafka(services);
-        }
-        else
-        {
-            RegisterRabbitMq(services);
-        }
+            var opts = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<NexusOptions>>().Value;
+            if (string.Equals(opts.Provider, "Kafka", StringComparison.OrdinalIgnoreCase))
+                return sp.GetRequiredService<IKafkaNexusBus>();
+
+            return sp.GetRequiredService<IRabbitMqNexusBus>();
+        });
 
         return services;
     }
@@ -50,7 +54,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<RabbitMqProducer>();
         services.AddSingleton<RabbitMqConsumer>();
 
-        services.AddSingleton<INexusBus, RabbitMqProvider>();
+        services.AddSingleton<IRabbitMqNexusBus, RabbitMqProvider>();
     }
 
     private static void RegisterKafka(IServiceCollection services)
@@ -58,6 +62,6 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<KafkaProducer>();
         services.AddSingleton<KafkaConsumer>();
 
-        services.AddSingleton<INexusBus, KafkaProvider>();
+        services.AddSingleton<IKafkaNexusBus, KafkaProvider>();
     }
 }

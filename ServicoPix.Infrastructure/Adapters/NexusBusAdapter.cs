@@ -5,20 +5,22 @@ namespace ServicoPix.Infrastructure.Adapters;
 
 public class NexusBusAdapter : IMensageriaService
 {
-    private readonly INexusBus _nexusClient;
+    private readonly IRabbitMqNexusBus _rabbit;
+    private readonly IKafkaNexusBus _kafka;
 
-    public NexusBusAdapter(INexusBus nexusClient)
+    public NexusBusAdapter(IRabbitMqNexusBus rabbit, IKafkaNexusBus kafka)
     {
-        _nexusClient = nexusClient;
+        _rabbit = rabbit;
+        _kafka = kafka;
     }
 
     public async Task PublicarComandoAsync<T>(string fila, T mensagem)
     {
-        await _nexusClient.PublishAsync(fila, mensagem);
+        await _rabbit.PublishAsync(fila, mensagem);
     }
 
     public async Task PublicarEventoAsync<T>(string topico, T mensagem)
     {
-        //await _nexusClient.Stream.PublishAsync(topico, mensagem);
+        await _kafka.PublishAsync(topico, mensagem);
     }
 }

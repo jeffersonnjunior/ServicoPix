@@ -3,9 +3,10 @@ using NexusBus.Abstractions;
 
 namespace ServicoPix.Worker
 {
-    public class Worker(INexusBus bus, ILogger<Worker> logger) : BackgroundService
+    public class Worker(IRabbitMqNexusBus rabbitBus, IKafkaNexusBus kafkaBus, ILogger<Worker> logger) : BackgroundService
     {
         private sealed record ProcessarPixMessage(Guid Id, JsonElement Dados);
+        private sealed record PixProcessadoEvent(Guid Id, DateTimeOffset ProcessadoEm);
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -16,7 +17,7 @@ namespace ServicoPix.Worker
             {
                 try
                 {
-                    await bus.SubscribeAsync<ProcessarPixMessage>(
+                    await rabbitBus.SubscribeAsync<ProcessarPixMessage>(
                         "queue.pix.processar",
                         async message =>
                         {
@@ -24,6 +25,12 @@ namespace ServicoPix.Worker
                                 "Mensagem recebida (queue.pix.processar): Id={Id} Dados={Dados}",
                                 message.Id,
                                 message.Dados.GetRawText());
+
+                            // Demonstração: após processar a mensagem da fila (RabbitMQ), publica um evento no Kafka.
+                            await kafkaBus.PublishAsync(
+                                "topic.pix.processado",
+                                new PixProcessadoEvent(message.Id, DateTimeOffset.UtcNow),
+                                stoppingToken);
 
                             await Task.CompletedTask;
                         },

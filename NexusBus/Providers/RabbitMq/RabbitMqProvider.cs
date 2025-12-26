@@ -2,7 +2,7 @@
 
 namespace NexusBus.Providers.RabbitMQ;
 
-internal class RabbitMqProvider : INexusBus
+internal class RabbitMqProvider : IRabbitMqNexusBus
 {
     private readonly RabbitMqProducer _producer;
     private readonly RabbitMqConsumer _consumer;
