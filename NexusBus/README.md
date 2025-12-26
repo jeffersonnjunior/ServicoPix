@@ -12,7 +12,17 @@ Esta lib foi desenhada para dois cenários:
 ## Instalação
 
 - **Via referência de projeto**: adicione referência ao projeto `NexusBus`.
-- **Via NuGet**: quando publicado, referencie o pacote do `NexusBus` (não incluso neste repositório como pacote).
+- **Via NuGet**: o projeto possui CI/CD que empacota e publica o `NexusBus` automaticamente.
+
+### CI/CD (publicação NuGet)
+
+Este repositório inclui um workflow do GitHub Actions que:
+
+- Roda em push na branch `master` quando houver mudanças em `NexusBus/**` (e também pode ser disparado manualmente)
+- Executa `dotnet pack` gerando o `.nupkg`
+- Publica via `dotnet nuget push` usando o segredo `NUGET_API_KEY`
+
+Arquivo do workflow: [.github/workflows/publish-nuget.yml](../.github/workflows/publish-nuget.yml)
 
 ---
 

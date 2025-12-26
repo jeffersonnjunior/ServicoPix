@@ -12,6 +12,16 @@ Documentação detalhada:
 
 ---
 
+## CI/CD (publicação NuGet)
+
+O repositório já possui um pipeline de CI/CD via GitHub Actions que empacota e publica o **NexusBus** em um feed NuGet.
+
+- Workflow: [.github/workflows/publish-nuget.yml](.github/workflows/publish-nuget.yml)
+- Gatilhos: push na branch `master` com mudanças em `NexusBus/**` (e também `workflow_dispatch`)
+- Publicação: executa `dotnet pack` e faz `nuget push` usando o segredo `NUGET_API_KEY`
+
+---
+
 ## Stack e tecnologias
 
 - .NET 10 (`net10.0`)
