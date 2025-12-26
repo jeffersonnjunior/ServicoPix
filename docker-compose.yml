@@ -27,6 +27,37 @@ services:
       timeout: 5s
       retries: 20
 
+  kafka:
+    image: redpandadata/redpanda:v24.3.8
+    command:
+      - redpanda
+      - start
+      - --overprovisioned
+      - --smp
+      - "1"
+      - --memory
+      - "1G"
+      - --reserve-memory
+      - "0M"
+      - --node-id
+      - "0"
+      - --check=false
+      - --kafka-addr
+      - PLAINTEXT://0.0.0.0:9092
+      - --advertise-kafka-addr
+      - PLAINTEXT://kafka:9092
+      - --pandaproxy-addr
+      - PLAINTEXT://0.0.0.0:8082
+      - --advertise-pandaproxy-addr
+      - PLAINTEXT://kafka:8082
+    volumes:
+      - redpanda_data:/var/lib/redpanda/data
+    healthcheck:
+      test: ["CMD-SHELL", "rpk cluster health --exit-when-healthy --brokers localhost:9092"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
   servicopix.migrator:
     image: ${DOCKER_REGISTRY-}servicopixapi
     build:
@@ -50,6 +81,7 @@ services:
       - NexusBus__RabbitMq__UserName=servicopix
       - NexusBus__RabbitMq__Password=servicopix
       - NexusBus__RabbitMq__VirtualHost=/
+      - NexusBus__Kafka__BootstrapServers=kafka:9092
     ports:
       - "8080:8080"
     depends_on:
@@ -70,6 +102,7 @@ services:
       - NexusBus__RabbitMq__UserName=servicopix
       - NexusBus__RabbitMq__Password=servicopix
       - NexusBus__RabbitMq__VirtualHost=/
+      - NexusBus__Kafka__BootstrapServers=kafka:9092
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -77,3 +110,4 @@ services:
 volumes:
   postgres_data:
   rabbitmq_data:
+  redpanda_data:

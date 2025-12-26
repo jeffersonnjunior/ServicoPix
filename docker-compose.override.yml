@@ -8,6 +8,11 @@ services:
       - "5672:5672"
       - "15672:15672"
 
+  kafka:
+    ports:
+      - "9092:9092"
+      - "9644:9644"
+
   servicopix.api:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
