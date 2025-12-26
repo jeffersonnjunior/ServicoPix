@@ -8,4 +8,6 @@
   <Project Path="ServicoPix.Domain/ServicoPix.Domain.csproj" />
   <Project Path="ServicoPix.Infrastructure/ServicoPix.Infrastructure.csproj" />
   <Project Path="ServicoPix.Worker/ServicoPix.Worker.csproj" />
+  <Project Path="tests/NexusBus.Tests/NexusBus.Tests.csproj" />
+  <Project Path="tests/ServicoPix.Tests/ServicoPix.Tests.csproj" />
 </Solution>
