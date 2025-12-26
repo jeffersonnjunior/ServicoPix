@@ -41,10 +41,11 @@ internal sealed class KafkaProducer : IDisposable
             token);
 
         _logger.LogDebug(
-            "NexusBus: Mensagem publicada em Kafka (topic={Topic}, partition={Partition}, offset={Offset})",
+            "NexusBus[Kafka]: Mensagem publicada (topic={Topic}, partition={Partition}, offset={Offset}, bootstrapServers={BootstrapServers})",
             topic,
             result.Partition.Value,
-            result.Offset.Value);
+            result.Offset.Value,
+            _options.Kafka.BootstrapServers);
     }
 
     public async Task PublishRawAsync(string topic, byte[] payload, Headers? headers, CancellationToken token)

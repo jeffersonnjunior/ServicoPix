@@ -10,19 +10,32 @@ namespace ServicoPix.Worker
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            logger.LogInformation("Worker iniciando consumo da fila {Queue}", "queue.pix.processar");
+            logger.LogInformation("Worker iniciando consumo [RabbitMQ] da fila {Queue}", "queue.pix.processar");
 
             var attempt = 0;
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
                 {
+                    await kafkaBus.SubscribeAsync<PixProcessadoEvent>(
+                        "topic.pix.processado",
+                        async evt =>
+                        {
+                            logger.LogInformation(
+                                "Evento recebido [Kafka] (topic.pix.processado): Id={Id} ProcessadoEm={ProcessadoEm}",
+                                evt.Id,
+                                evt.ProcessadoEm);
+
+                            await Task.CompletedTask;
+                        },
+                        stoppingToken);
+
                     await rabbitBus.SubscribeAsync<ProcessarPixMessage>(
                         "queue.pix.processar",
                         async message =>
                         {
                             logger.LogInformation(
-                                "Mensagem recebida (queue.pix.processar): Id={Id} Dados={Dados}",
+                                "Mensagem recebida [RabbitMQ] (queue.pix.processar): Id={Id} Dados={Dados}",
                                 message.Id,
                                 message.Dados.GetRawText());
 

@@ -22,7 +22,26 @@ internal sealed class KafkaConsumer
     public Task SubscribeAsync<T>(string topic, Func<T, Task> handler, CancellationToken token)
     {
         // Match RabbitMQ behavior: start consuming and return immediately.
-        _ = Task.Run(() => ConsumeLoop(topic, handler, token), token);
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await ConsumeLoop(topic, handler, token);
+            }
+            catch (OperationCanceledException) when (token.IsCancellationRequested)
+            {
+                // ignore
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "NexusBus[Kafka]: Falha fatal no consumer (topic={Topic}, bootstrapServers={BootstrapServers}, groupId={GroupId})",
+                    topic,
+                    _options.Kafka.BootstrapServers,
+                    _options.Kafka.GroupId);
+            }
+        }, token);
         return Task.CompletedTask;
     }
 
@@ -32,15 +51,16 @@ internal sealed class KafkaConsumer
 
         using var consumer = new ConsumerBuilder<Ignore, byte[]>(consumerConfig)
             .SetValueDeserializer(Deserializers.ByteArray)
-            .SetErrorHandler((_, e) => _logger.LogWarning("NexusBus: Kafka error: {Reason}", e.Reason))
+            .SetErrorHandler((_, e) => _logger.LogWarning("NexusBus[Kafka]: Kafka error: {Reason}", e.Reason))
             .Build();
 
         consumer.Subscribe(topic);
 
         _logger.LogInformation(
-            "NexusBus: Ouvindo tópico Kafka {Topic} (groupId={GroupId})",
+            "NexusBus[Kafka]: Ouvindo topico {Topic} (groupId={GroupId}, bootstrapServers={BootstrapServers})",
             topic,
-            consumerConfig.GroupId);
+            consumerConfig.GroupId,
+            consumerConfig.BootstrapServers);
 
         try
         {
@@ -75,7 +95,7 @@ internal sealed class KafkaConsumer
                 catch (Exception ex)
                 {
                     _logger.LogError(ex,
-                        "NexusBus: Erro processando msg Kafka (topic={Topic}, partition={Partition}, offset={Offset})",
+                        "NexusBus[Kafka]: Erro processando msg (topic={Topic}, partition={Partition}, offset={Offset})",
                         topic,
                         cr.Partition.Value,
                         cr.Offset.Value);
@@ -92,7 +112,7 @@ internal sealed class KafkaConsumer
                         catch (Exception dlqEx)
                         {
                             _logger.LogWarning(dlqEx,
-                                "NexusBus: Falha ao publicar em DLQ Kafka (dlqTopic={DlqTopic}). Offset não será commitado.",
+                                "NexusBus[Kafka]: Falha ao publicar em DLQ (dlqTopic={DlqTopic}). Offset não será commitado.",
                                 dlqTopic);
                         }
                     }
@@ -108,10 +128,14 @@ internal sealed class KafkaConsumer
             }
             catch (Exception ex)
             {
-                _logger.LogDebug(ex, "NexusBus: Falha ao fechar consumer Kafka");
+                _logger.LogDebug(ex, "NexusBus[Kafka]: Falha ao fechar consumer");
             }
 
-            _logger.LogInformation("NexusBus: Consumer Kafka finalizado (topic={Topic})", topic);
+            _logger.LogInformation(
+                "NexusBus[Kafka]: Consumer finalizado (topic={Topic}, bootstrapServers={BootstrapServers}, groupId={GroupId})",
+                topic,
+                consumerConfig.BootstrapServers,
+                consumerConfig.GroupId);
         }
     }
 

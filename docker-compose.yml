@@ -53,10 +53,20 @@ services:
     volumes:
       - redpanda_data:/var/lib/redpanda/data
     healthcheck:
-      test: ["CMD-SHELL", "rpk cluster health --exit-when-healthy --brokers localhost:9092"]
+      test: ["CMD-SHELL", "rpk cluster health"]
       interval: 5s
       timeout: 5s
-      retries: 20
+      retries: 60
+      start_period: 45s
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:v0.7.2
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
+    depends_on:
+      kafka:
+        condition: service_started
 
   servicopix.migrator:
     image: ${DOCKER_REGISTRY-}servicopixapi
@@ -107,7 +117,7 @@ services:
       rabbitmq:
         condition: service_healthy
       kafka:
-        condition: service_healthy
+        condition: service_started
 
 volumes:
   postgres_data:

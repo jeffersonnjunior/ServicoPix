@@ -35,6 +35,7 @@ internal class RabbitMqConsumer
         var channel = await connection.CreateChannelAsync(cancellationToken: token);
 
         var rmq = _options.RabbitMq;
+        var requeueOnError = !rmq.EnableDeadLetter;
         var useCustomExchange = rmq.DeclareTopology && !string.IsNullOrWhiteSpace(rmq.ExchangeName);
         var exchangeName = useCustomExchange ? rmq.ExchangeName : "";
 
@@ -92,7 +93,7 @@ internal class RabbitMqConsumer
 
                 if (message == null)
                 {
-                    await channel.BasicNackAsync(ea.DeliveryTag, multiple: false, requeue: false, cancellationToken: token);
+                    await channel.BasicNackAsync(ea.DeliveryTag, multiple: false, requeue: requeueOnError, cancellationToken: token);
                     return;
                 }
 
@@ -102,17 +103,29 @@ internal class RabbitMqConsumer
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro processando msg na fila {Queue}", queueName);
+                _logger.LogError(
+                    ex,
+                    "NexusBus[RabbitMQ]: Erro processando msg (queue={Queue}, host={Host}:{Port}, vhost={VirtualHost})",
+                    queueName,
+                    rmq.HostName,
+                    rmq.Port,
+                    rmq.VirtualHost ?? "/");
 
-                await channel.BasicNackAsync(ea.DeliveryTag, multiple: false, requeue: false, cancellationToken: token);
+                await channel.BasicNackAsync(ea.DeliveryTag, multiple: false, requeue: requeueOnError, cancellationToken: token);
             }
         };
 
         var consumerTag = await channel.BasicConsumeAsync(queue: queueName, autoAck: false, consumer: consumer, cancellationToken: token);
 
-        _logger.LogInformation("NexusBus: Ouvindo fila {Queue} com RabbitMQ v7 (consumer={ConsumerTag})", queueName, consumerTag);
+        _logger.LogInformation(
+            "NexusBus[RabbitMQ]: Ouvindo fila {Queue} (consumer={ConsumerTag}, host={Host}:{Port}, vhost={VirtualHost})",
+            queueName,
+            consumerTag,
+            rmq.HostName,
+            rmq.Port,
+            rmq.VirtualHost ?? "/");
 
-             if (token.CanBeCanceled)
+           if (token.CanBeCanceled)
         {
             token.Register(() =>
             {
@@ -120,7 +133,10 @@ internal class RabbitMqConsumer
                 {
                     try
                     {
-                        _logger.LogInformation("NexusBus: Cancelando consumer {ConsumerTag} da fila {Queue}", consumerTag, queueName);
+                        _logger.LogInformation(
+                            "NexusBus[RabbitMQ]: Cancelando consumer {ConsumerTag} (queue={Queue})",
+                            consumerTag,
+                            queueName);
 
                         try
                         {

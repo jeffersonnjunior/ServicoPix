@@ -121,7 +121,13 @@ internal class RabbitMqProducer
                 body: body,
                 cancellationToken: token);
 
-            _logger.LogDebug("Mensagem enviada para fila {Queue} (RabbitMQ v7)", queueName);
+            _logger.LogDebug(
+                "NexusBus[RabbitMQ]: Mensagem enviada (queue={Queue}, exchange={Exchange}, host={Host}:{Port}, vhost={VirtualHost})",
+                queueName,
+                string.IsNullOrWhiteSpace(exchangeName) ? "(default)" : exchangeName,
+                rmq.HostName,
+                rmq.Port,
+                rmq.VirtualHost ?? "/");
         });
     }
 }

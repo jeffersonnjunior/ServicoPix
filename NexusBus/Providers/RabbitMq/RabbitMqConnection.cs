@@ -54,7 +54,10 @@ internal class RabbitMqConnection : IAsyncDisposable
                 try
                 {
                     _logger.LogInformation(
-                        "NexusBus: Iniciando conexão assíncrona com RabbitMQ v7... (tentativa {Attempt}/{Total})",
+                        "NexusBus[RabbitMQ]: Conectando em {Host}:{Port} vhost={VirtualHost} (tentativa {Attempt}/{Total})",
+                        _factory.HostName,
+                        _factory.Port,
+                        _factory.VirtualHost,
                         attempt,
                         attempts);
 
@@ -65,7 +68,13 @@ internal class RabbitMqConnection : IAsyncDisposable
                 {
                     lastException = ex;
                     var delay = TimeSpan.FromSeconds(Math.Min(10, attempt));
-                    _logger.LogWarning(ex, "NexusBus: Falha ao conectar no RabbitMQ. Nova tentativa em {Delay}.", delay);
+                    _logger.LogWarning(
+                        ex,
+                        "NexusBus[RabbitMQ]: Falha ao conectar em {Host}:{Port} vhost={VirtualHost}. Nova tentativa em {Delay}.",
+                        _factory.HostName,
+                        _factory.Port,
+                        _factory.VirtualHost,
+                        delay);
                     await Task.Delay(delay, token);
                 }
                 catch (Exception ex)
@@ -75,7 +84,12 @@ internal class RabbitMqConnection : IAsyncDisposable
                 }
             }
 
-            _logger.LogError(lastException, "NexusBus: Falha fatal ao conectar no RabbitMQ.");
+            _logger.LogError(
+                lastException,
+                "NexusBus[RabbitMQ]: Falha fatal ao conectar em {Host}:{Port} vhost={VirtualHost}.",
+                _factory.HostName,
+                _factory.Port,
+                _factory.VirtualHost);
             throw lastException ?? new InvalidOperationException("Falha fatal ao conectar no RabbitMQ.");
         }
         finally
@@ -93,7 +107,7 @@ internal class RabbitMqConnection : IAsyncDisposable
         {
             await _connection.CloseAsync();
             await _connection.DisposeAsync();
-            _logger.LogInformation("NexusBus: Conexão RabbitMQ fechada.");
+            _logger.LogInformation("NexusBus[RabbitMQ]: Conexão fechada.");
         }
 
         _lock.Dispose();
