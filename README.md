@@ -1,17 +1,3 @@
-# TesteSenff
-
-Repositório com:
-
-- **NexusBus**: biblioteca de mensageria com abstração simples de publish/subscribe e suporte a **RabbitMQ** e **Kafka**.
-- **ServicoPix**: aplicação de exemplo (API + Worker) usando a lib para demonstrar um fluxo assíncrono: **API → RabbitMQ → Worker → Kafka**.
-
-Documentação detalhada:
-
-- NexusBus: `NexusBus/README.md`
-- ServicoPix: `docs/ServicoPix.md`
-
----
-
 ## Contexto do teste (resumo)
 
 Objetivo: desenvolver um pacote NuGet de mensageria em **.NET 10** que abstraia o broker e facilite **publicação/consumo** para outros desenvolvedores, com **confiabilidade** (retentativas/boas práticas), uma **aplicação de exemplo** e **infra via Docker Compose**.
