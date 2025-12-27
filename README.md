@@ -12,6 +12,21 @@ Documentação detalhada:
 
 ---
 
+## Contexto do teste (resumo)
+
+Objetivo: desenvolver um pacote NuGet de mensageria em **.NET 10** que abstraia o broker e facilite **publicação/consumo** para outros desenvolvedores, com **confiabilidade** (retentativas/boas práticas), uma **aplicação de exemplo** e **infra via Docker Compose**.
+
+Como este repositório atende:
+
+- **Pacote reutilizável**: `NexusBus` fornece uma interface simples (`INexusBus`) e providers para **RabbitMQ** e **Kafka**.
+- **Configuração**: `NexusBus:*` suporta parâmetros de conexão, retries e opções de DLQ.
+- **Retentativas/confiabilidade**: RabbitMQ com retry/backoff de conexão e logs; Kafka com commit manual e DLQ opcional.
+- **Aplicação de teste**: `ServicoPix` demonstra o fluxo **API → RabbitMQ → Worker → Kafka**.
+- **Docker Compose**: stack local completa com Postgres, RabbitMQ, Redpanda (Kafka), Kafka UI, API, Worker e Migrator.
+- **Testes**: projetos em `tests/` validam publicação/consumo (via fakes), DI e comportamentos principais.
+
+---
+
 ## CI/CD (publicação NuGet)
 
 O repositório já possui um pipeline de CI/CD via GitHub Actions que empacota e publica o **NexusBus** em um feed NuGet.
